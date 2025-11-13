@@ -1,0 +1,109 @@
+@using RecipeMood.Models
+@model List<MoodEntry>
+
+@{
+    ViewData["Title"] = "RecipeMood — Journal";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial; background: linear-gradient(135deg,#fff7f0,#fff); padding: 24px; color: #222; }
+        .container{ max-width: 1000px; margin: 0 auto; }
+        header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+        h1 { font-size:1.6rem; color:#2b2b2b; }
+        .controls { display:flex; gap:12px; align-items:center; }
+        .btn { padding:10px 14px; border-radius:8px; text-decoration:none; background:#2b6cb0; color:#fff; font-weight:600; }
+        .btn.secondary { background:#e2e8f0; color:#1a202c; }
+        form.filter { display:flex; gap:10px; align-items:center; }
+        select, input[type="text"] { padding:8px 10px; border-radius:8px; border:1px solid #d1d5db; }
+        .entries { margin-top:18px; display:grid; gap:14px; }
+        .card { background:#fff; border-radius:10px; padding:16px; box-shadow:0 6px 18px rgba(15,23,42,0.06); display:flex; justify-content:space-between; gap:12px; }
+        .left { flex:1; }
+        .meta { color:#6b7280; font-size:0.9rem; margin-bottom:8px; }
+        .mood { font-weight:700; font-size:1.1rem; color:#1f2937; }
+        .recipes { margin-top:10px; display:flex; gap:8px; flex-wrap:wrap; }
+        .recipe-chip { padding:6px 10px; border-radius:999px; background:linear-gradient(90deg,#ffe1e6,#fff0f6); font-size:0.85rem; color:#7f1d1d; }
+        .actions { display:flex; gap:8px; align-items:center; }
+        .del { background:#ff6b6b; color:#fff; border:none; padding:8px 10px; border-radius:8px; cursor:pointer; }
+        .small { font-size:0.85rem; color:#374151; }
+        .empty { text-align:center; padding:40px; color:#6b7280; background:linear-gradient(180deg,#fff,#fafafa); border-radius:10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>RecipeMood — Journal</h1>
+            <div class="controls">
+                <a class="btn" href="@Url.Action("Create")">+ Log Mood</a>
+                <a class="btn secondary" href="@Url.Action("Stats")">View Stats</a>
+                <a class="btn secondary" href="/export/json">Export JSON</a>
+            </div>
+        </header>
+
+        <section>
+            <form method="get" class="filter" asp-action="Index" role="search">
+                <label class="small">Filter:</label>
+                <select name="filterMood">
+                    <option value="">All moods</option>
+                    @foreach (var enumVal in Enum.GetValues(typeof(MoodCategory)).Cast<MoodCategory>())
+                    {
+                        <option value="@enumVal" @(Request.Query["filterMood"] == enumVal.ToString() ? "selected" : "")>@enumVal</option>
+                    }
+                </select>
+
+                <input type="text" name="searchNotes" placeholder="Search notes..." value="@(Request.Query["searchNotes"])" />
+
+                <button type="submit" class="btn secondary">Apply</button>
+            </form>
+        </section>
+
+        <div class="entries">
+            @if (!Model.Any())
+            {
+                <div class="empty">
+                    <p>No mood entries yet. Click <strong>Log Mood</strong> to add your first entry.</p>
+                </div>
+            }
+            else
+            {
+                @foreach (var entry in Model)
+                {
+                    <div class="card">
+                        <div class="left">
+                            <div class="meta">@entry.Date.ToString("MMM dd, yyyy - hh:mm tt")</div>
+                            <div class="mood">@entry.Mood &nbsp; <span class="small">• Intensity: @entry.Intensity/10</span></div>
+                            @if (!string.IsNullOrWhiteSpace(entry.Notes))
+                            {
+                                <div style="margin-top:8px; color:#374151;">@entry.Notes</div>
+                            }
+                            @if (entry.SuggestedRecipes.Any())
+                            {
+                                <div class="recipes">
+                                    @foreach (var r in entry.SuggestedRecipes)
+                                    {
+                                        <a class="recipe-chip" href="@Url.Action("RecipeDetails", "Mood", new { id = entry.Id })">@r.Name</a>
+                                    }
+                                </div>
+                            }
+                        </div>
+
+                        <div class="actions">
+                            <a class="btn secondary" href="@Url.Action("RecipeDetails", "Mood", new { id = entry.Id })">Details</a>
+
+                            <form method="post" asp-action="Delete" onsubmit="return confirm('Delete this entry?');">
+                                <input type="hidden" name="id" value="@entry.Id" />
+                                <button type="submit" class="del">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                }
+            }
+        </div>
+    </div>
+</body>
+</html>
