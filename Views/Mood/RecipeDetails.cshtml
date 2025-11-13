@@ -1,0 +1,75 @@
+@using RecipeMood.Models
+@model MoodEntry
+
+@{
+    ViewData["Title"] = "Recipe Suggestions — RecipeMood";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto; background:#fff; padding:28px; color:#111; }
+        .wrap { max-width:900px; margin:0 auto; }
+        header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+        .card { background:#fff; padding:18px; border-radius:10px; box-shadow:0 10px 30px rgba(15,23,42,0.06); margin-bottom:12px; }
+        h1 { font-size:1.4rem; }
+        .meta { color:#6b7280; margin-bottom:12px; }
+        .recipes { display:grid; gap:12px; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); margin-top:12px; }
+        .recipe { border-radius:10px; padding:12px; background:linear-gradient(180deg,#fff,#fbfbff); box-shadow:0 6px 18px rgba(15,23,42,0.04); }
+        .r-title { font-weight:800; margin-bottom:6px; }
+        .r-sub { color:#6b7280; font-size:0.9rem; margin-bottom:8px; }
+        ul { margin-left:18px; }
+        .back { text-decoration:none; padding:8px 12px; border-radius:8px; background:#e6e6e6; color:#111; font-weight:700; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <header>
+            <div>
+                <h1>Recipe suggestions for @Model.Mood</h1>
+                <div class="meta">@Model.Date.ToString("MMM dd, yyyy - hh:mm tt") • Intensity: @Model.Intensity/10</div>
+            </div>
+            <div>
+                <a class="back" href="@Url.Action("Index")">← Back</a>
+            </div>
+        </header>
+
+        @if (!Model.SuggestedRecipes.Any())
+        {
+            <div class="card">No recipe suggestions available for this entry.</div>
+        }
+        else
+        {
+            <div class="recipes">
+                @foreach (var r in Model.SuggestedRecipes)
+                {
+                    <div class="recipe">
+                        <div class="r-title">@r.Name</div>
+                        <div class="r-sub">@r.Type • @r.Difficulty</div>
+                        <div><strong>Ingredients</strong>
+                            <ul>
+                                @foreach (var ing in r.Ingredients)
+                                {
+                                    <li>@ing</li>
+                                }
+                            </ul>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        @if (!string.IsNullOrWhiteSpace(Model.Notes))
+        {
+            <div style="margin-top:18px" class="card">
+                <strong>Notes</strong>
+                <p style="margin-top:8px;color:#374151;">@Model.Notes</p>
+            </div>
+        }
+    </div>
+</body>
+</html>
