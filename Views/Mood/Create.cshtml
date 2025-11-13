@@ -1,0 +1,67 @@
+@using RecipeMood.Models
+@model MoodEntry
+
+@{
+    ViewData["Title"] = "Log Mood — RecipeMood";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, Roboto, "Segoe UI", Arial; background: linear-gradient(180deg,#fff,#fcfcff); padding:28px; color:#222; }
+        .wrap { max-width:720px; margin:0 auto; background:#fff; padding:22px; border-radius:12px; box-shadow:0 10px 30px rgba(15,23,42,0.06); }
+        h1 { margin-bottom:12px; color:#1f2937; }
+        label { display:block; margin:12px 0 6px; font-weight:600; color:#374151; }
+        input[type="text"], textarea, select, input[type="number"] { width:100%; padding:10px 12px; border-radius:8px; border:1px solid #e6e9ef; font-size:1rem; }
+        .row { display:flex; gap:12px; }
+        .col { flex:1; }
+        .btn-row { display:flex; gap:12px; margin-top:16px; }
+        .btn { padding:10px 14px; border-radius:8px; background:#16a34a; color:#fff; font-weight:700; text-decoration:none; border:none; cursor:pointer; }
+        .btn.secondary { background:#e6e6e6; color:#111; }
+        .note { font-size:0.9rem; color:#6b7280; margin-top:6px; }
+        .slider { width:100%; }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+        <h1>Log your mood</h1>
+
+        <form method="post" asp-action="Create">
+            <label for="Mood">Mood</label>
+            <select id="Mood" name="Mood" required>
+                <option value="">-- choose mood --</option>
+                @foreach (var m in Enum.GetValues(typeof(MoodCategory)).Cast<MoodCategory>())
+                {
+                    <option value="@m">@m</option>
+                }
+            </select>
+
+            <div class="row" style="margin-top:12px;">
+                <div class="col">
+                    <label for="Intensity">Intensity (1-10)</label>
+                    <input type="range" id="Intensity" name="Intensity" min="1" max="10" value="5" oninput="document.getElementById('val').textContent = this.value" />
+                    <div class="note">Current: <strong id="val">5</strong></div>
+                </div>
+                <div class="col">
+                    <label for="Notes">Notes (optional)</label>
+                    <input type="text" id="Notes" name="Notes" placeholder="How are you feeling or what do you crave?" />
+                </div>
+            </div>
+
+            <div style="margin-top:12px;">
+                <label for="tags">Tags (comma separated, optional)</label>
+                <input type="text" id="tags" name="Tags" placeholder="e.g. comfort, weekend, quick" />
+            </div>
+
+            <div class="btn-row">
+                <a class="btn secondary" href="@Url.Action("Index")">← Back</a>
+                <button class="btn" type="submit">Save Entry</button>
+            </div>
+        </form>
+    </div>
+</body>
+</html>
