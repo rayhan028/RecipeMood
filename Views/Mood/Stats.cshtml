@@ -1,0 +1,108 @@
+@using RecipeMood.Models
+@model MoodStats
+
+@{
+    ViewData["Title"] = "Stats — RecipeMood";
+}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewData["Title"]</title>
+    <style>
+        * { box-sizing: border-box; }
+        body { font-family: system-ui, -apple-system, "Segoe UI", Roboto; background:#fbfbff; padding:28px; color:#222; }
+        .container { max-width:1000px; margin:0 auto; }
+        header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; }
+        .card-grid { display:grid; grid-template-columns: repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-top:14px; }
+        .card { background:#fff; padding:16px; border-radius:10px; box-shadow:0 6px 20px rgba(15,23,42,0.05); }
+        .title { color:#6b7280; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.6px; margin-bottom:8px; }
+        .value { font-size:1.6rem; font-weight:700; color:#111827; }
+        .list { margin-top:10px; list-style:none; padding:0; }
+        .list li { display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px dashed #f1f1f1; }
+        .chart { height:160px; display:flex; align-items:end; gap:8px; padding:12px; }
+        .bar { width:18px; background:linear-gradient(180deg,#60a5fa,#1d4ed8); border-radius:6px 6px 0 0; display:block; }
+        .back { text-decoration:none; padding:10px 12px; background:#e6e6e6; border-radius:8px; color:#111; font-weight:700; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Mood Statistics</h1>
+            <a class="back" href="@Url.Action("Index")">← Back to Journal</a>
+        </header>
+
+        @if (string.IsNullOrEmpty(Model.MostCommonMood))
+        {
+            <div class="card">No entries yet. Log moods to see statistics.</div>
+        }
+        else
+        {
+            <div class="card-grid">
+                <div class="card">
+                    <div class="title">Most common mood</div>
+                    <div class="value">@Model.MostCommonMood</div>
+                </div>
+
+                <div class="card">
+                    <div class="title">Average intensity</div>
+                    <div class="value">@Model.AverageIntensity.ToString("F1") / 10</div>
+                </div>
+
+                <div class="card">
+                    <div class="title">Top recipe types</div>
+                    <ul class="list">
+                        @if (Model.RecipeTypeFrequency != null && Model.RecipeTypeFrequency.Any())
+                        {
+                            @foreach (var kv in Model.RecipeTypeFrequency.OrderByDescending(k => k.Value))
+                            {
+                                <li><span>@kv.Key</span><strong>@kv.Value</strong></li>
+                            }
+                        }
+                        else
+                        {
+                            <li>—</li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="title">Mood frequency</div>
+                    <ul class="list">
+                        @foreach (var kv in Model.MoodFrequency.OrderByDescending(k => k.Value))
+                        {
+                            <li><span>@kv.Key</span><strong>@kv.Value</strong></li>
+                        }
+                    </ul>
+                </div>
+
+                <div class="card" style="grid-column: 1 / -1;">
+                    <div class="title">Intensity trend (daily)</div>
+                    <div class="chart" aria-hidden="true">
+                        @{
+                            var trend = Model.IntensityTrend.OrderBy(k => k.Key).ToList();
+                            if (!trend.Any())
+                            {
+                                <div>No trend data</div>;
+                            }
+                            else
+                            {
+                                var max = trend.Max(t => t.Value);
+                                foreach (var t in trend)
+                                {
+                                    var height = max == 0 ? 4 : Math.Max(4, (int)Math.Round((t.Value / (double)max) * 140));
+                                    <div style="display:flex;flex-direction:column;align-items:center;">
+                                        <span style="font-size:0.7rem;color:#6b7280;margin-bottom:6px;">@t.Key.ToString("MM/dd")</span>
+                                        <span class="bar" style="height:@height px" title="@t.Value"></span>
+                                    </div>
+                                }
+                            }
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</body>
+</html>
